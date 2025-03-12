@@ -95,37 +95,6 @@ Ensure you have the following installed:
    ```
    The production-ready files will be in the `dist` directory.
 
-## Project Structure
-```plaintext
-public
-  placeholder.svg
-src
-  components
-  context
-  data
-  hooks
-  lib
-  pages
-  types
-  utils
-  App.css
-  App.tsx
-  index.css
-  main.tsx
-.gitignore
-components.json
-eslint.config.js
-index.html
-package.json
-postcss.config.js
-README.md
-tailwind.config.ts
-tsconfig.app.json
-tsconfig.json
-tsconfig.node.json
-vite.config.ts
-```
-
 ## Contributing
 Contributions are welcome! Please follow these steps:
 1. Fork the repository.
@@ -143,4 +112,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - [Vite](https://vitejs.dev/) for the build tool.
 
 ## Deployed Application
-- **Live URL:** [Scholarship Buddy Finder](https://scholarship-buddy-finder.lovable.app)
+#- **Live URL:** [Scholarship Buddy Finder](https://scholarship-buddy-finder.lovable.app)
