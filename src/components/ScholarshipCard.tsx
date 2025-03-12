@@ -1,9 +1,11 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Scholarship, ScholarshipStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 import {
   Calendar,
   GraduationCap,
@@ -43,6 +45,9 @@ const ScholarshipCard = ({
   matchScore,
 }: ScholarshipCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(isSaved);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   // Format deadline date
   const formatDeadline = (dateString: string) => {
@@ -76,6 +81,37 @@ const ScholarshipCard = ({
     }).format(amount);
   };
 
+  const handleSaveScholarship = () => {
+    if (!currentUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save scholarships",
+        variant: "destructive"
+      });
+      navigate('/sign-in');
+      return;
+    }
+
+    setIsBookmarked(!isBookmarked);
+    
+    if (!isBookmarked) {
+      toast({
+        title: "Scholarship saved",
+        description: "Scholarship has been added to your saved list",
+      });
+    } else {
+      toast({
+        title: "Scholarship removed",
+        description: "Scholarship has been removed from your saved list",
+      });
+    }
+    
+    // Call parent onSave if provided
+    if (onSave) {
+      onSave(scholarship.id);
+    }
+  };
+
   return (
     <Card 
       className={cn(
@@ -90,29 +126,27 @@ const ScholarshipCard = ({
           <CardTitle className="text-xl font-bold line-clamp-2">
             {scholarship.name}
           </CardTitle>
-          {onSave && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="text-muted-foreground hover:text-blue-500"
-                    onClick={() => onSave(scholarship.id)}
-                  >
-                    {isSaved ? (
-                      <BookmarkCheck className="h-5 w-5 text-blue-500" />
-                    ) : (
-                      <Bookmark className="h-5 w-5" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {isSaved ? "Remove from saved" : "Save scholarship"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-muted-foreground hover:text-blue-500"
+                  onClick={handleSaveScholarship}
+                >
+                  {isBookmarked ? (
+                    <BookmarkCheck className="h-5 w-5 text-blue-500" />
+                  ) : (
+                    <Bookmark className="h-5 w-5" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isBookmarked ? "Remove from saved" : "Save scholarship"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <div className="text-sm text-muted-foreground mt-1">
           {scholarship.provider}

@@ -1,76 +1,112 @@
 
-import { Scholarship, UserProfile } from "../types";
+import { Scholarship, UserProfile, StudyLevel } from '@/types';
 
+// Calculate a match score based on how well a scholarship matches a user's profile
 export const getRecommendedScholarships = (
   scholarships: Scholarship[],
-  userProfile?: UserProfile
-): Scholarship[] => {
-  if (!userProfile) {
-    // If no profile, return featured scholarships
-    return scholarships.filter(s => s.featured);
-  }
-
-  // Basic scoring algorithm
-  const scoredScholarships = scholarships.map(scholarship => {
+  userProfile: UserProfile
+): { scholarship: Scholarship; score: number }[] => {
+  const recommendations = scholarships.map(scholarship => {
     let score = 0;
-    const { academicInfo, personalInfo } = userProfile;
-
-    // GPA Match
-    if (scholarship.eligibility.minGPA && academicInfo.gpa >= scholarship.eligibility.minGPA) {
-      score += 10;
-      
-      // Bonus for exceeding minimum GPA by 0.5 or more
-      if (academicInfo.gpa >= (scholarship.eligibility.minGPA + 0.5)) {
-        score += 5;
+    let factors = 0;
+    
+    // Study level match
+    if (scholarship.eligibility.studyLevel) {
+      factors++;
+      if (scholarship.eligibility.studyLevel.includes(userProfile.academicInfo.studyLevel)) {
+        score += 1;
       }
-    } else if (scholarship.eligibility.minGPA && academicInfo.gpa < scholarship.eligibility.minGPA) {
-      score -= 20; // Significant penalty for not meeting minimum GPA
     }
-
-    // Field of Study Match
-    if (
-      scholarship.eligibility.fieldOfStudy && 
-      (scholarship.eligibility.fieldOfStudy.includes(academicInfo.major) || 
-      scholarship.eligibility.fieldOfStudy.includes("All"))
-    ) {
-      score += 15;
+    
+    // GPA match
+    if (scholarship.eligibility.minGPA) {
+      factors++;
+      if (userProfile.academicInfo.gpa >= scholarship.eligibility.minGPA) {
+        score += 1;
+      }
     }
-
-    // Study Level Match
-    if (
-      scholarship.eligibility.studyLevel && 
-      scholarship.eligibility.studyLevel.includes(academicInfo.studyLevel)
-    ) {
-      score += 15;
-    } else if (scholarship.eligibility.studyLevel && !scholarship.eligibility.studyLevel.includes(academicInfo.studyLevel)) {
-      score -= 30; // Major penalty for wrong study level
+    
+    // Nationality match
+    if (scholarship.eligibility.nationality && 
+        scholarship.eligibility.nationality[0] !== 'All') {
+      factors++;
+      if (scholarship.eligibility.nationality.includes(userProfile.personalInfo.citizenship)) {
+        score += 1;
+      }
     }
-
-    // Nationality/Citizenship Match
-    if (
-      scholarship.eligibility.nationality && 
-      (scholarship.eligibility.nationality.includes(personalInfo.citizenship) || 
-      scholarship.eligibility.nationality.includes("All"))
-    ) {
-      score += 10;
-    } else if (scholarship.eligibility.nationality && !scholarship.eligibility.nationality.includes(personalInfo.citizenship)) {
-      score -= 20; // Penalty for citizenship mismatch
+    
+    // Field of study match
+    if (scholarship.eligibility.fieldOfStudy && 
+        scholarship.eligibility.fieldOfStudy[0] !== 'All') {
+      factors++;
+      const userMajor = userProfile.academicInfo.major.toLowerCase();
+      if (scholarship.eligibility.fieldOfStudy.some(
+        field => field.toLowerCase() === userMajor || field === 'All'
+      )) {
+        score += 1;
+      }
     }
-
-    // Featured scholarships get a small boost
-    if (scholarship.featured) {
-      score += 5;
-    }
-
+    
+    // Convert to percentage
+    const matchPercentage = factors > 0 
+      ? Math.round((score / factors) * 100) 
+      : 100; // If no eligibility factors, consider it a full match
+    
     return {
       scholarship,
-      score
+      score: matchPercentage
     };
   });
+  
+  // Sort by score (highest first)
+  return recommendations
+    .filter(rec => rec.score > 50) // Only include reasonable matches
+    .sort((a, b) => b.score - a.score);
+};
 
-  // Sort by score (highest first) and filter out very poor matches
-  return scoredScholarships
-    .filter(item => item.score > 0) // Only include positive scores
-    .sort((a, b) => b.score - a.score) // Sort by score descending
-    .map(item => item.scholarship); // Return just the scholarship objects
+// Calculate days remaining until deadline
+export const calculateDaysRemaining = (deadline: string): number => {
+  const deadlineDate = new Date(deadline);
+  const today = new Date();
+  const diffTime = deadlineDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+};
+
+// Check if a scholarship is eligible for a user
+export const isEligibleForScholarship = (
+  scholarship: Scholarship,
+  userProfile: UserProfile
+): boolean => {
+  // Check study level
+  if (scholarship.eligibility.studyLevel && 
+      !scholarship.eligibility.studyLevel.includes(userProfile.academicInfo.studyLevel)) {
+    return false;
+  }
+  
+  // Check GPA requirement
+  if (scholarship.eligibility.minGPA && 
+      userProfile.academicInfo.gpa < scholarship.eligibility.minGPA) {
+    return false;
+  }
+  
+  // Check nationality requirement
+  if (scholarship.eligibility.nationality && 
+      scholarship.eligibility.nationality[0] !== 'All' &&
+      !scholarship.eligibility.nationality.includes(userProfile.personalInfo.citizenship)) {
+    return false;
+  }
+  
+  // Check field of study
+  if (scholarship.eligibility.fieldOfStudy && 
+      scholarship.eligibility.fieldOfStudy[0] !== 'All') {
+    const userMajor = userProfile.academicInfo.major.toLowerCase();
+    if (!scholarship.eligibility.fieldOfStudy.some(
+      field => field.toLowerCase() === userMajor || field === 'All'
+    )) {
+      return false;
+    }
+  }
+  
+  return true;
 };
