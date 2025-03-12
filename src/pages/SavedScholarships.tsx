@@ -6,20 +6,21 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ScholarshipCard from '@/components/ScholarshipCard';
 import Navbar from '@/components/Navbar';
-import { savedScholarships } from '@/data/scholarships';
-import { scholarships } from '@/data/scholarships';
 import { SavedScholarship, ScholarshipStatus, Scholarship } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const SavedScholarshipsPage = () => {
   const navigate = useNavigate();
-  const { currentUser, isLoading } = useAuth();
+  const { currentUser, isLoading: authLoading } = useAuth();
   const [userSavedScholarships, setUserSavedScholarships] = useState<SavedScholarship[]>([]);
+  const [scholarshipDetails, setScholarshipDetails] = useState<Record<string, Scholarship>>({});
   const [currentTab, setCurrentTab] = useState<string>("all");
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     // Redirect if not logged in
-    if (!isLoading && !currentUser) {
+    if (!authLoading && !currentUser) {
       toast({
         title: "Authentication required",
         description: "Please sign in to access saved scholarships",
@@ -30,56 +31,183 @@ const SavedScholarshipsPage = () => {
     }
     
     // Get user's saved scholarships
-    if (currentUser) {
-      // In a real app, this would be an API call
-      const userSaved = savedScholarships.filter(
-        saved => saved.userId === currentUser.id
-      );
-      setUserSavedScholarships(userSaved as SavedScholarship[]);
-    }
-  }, [currentUser, isLoading, navigate]);
-  
-  const getScholarshipById = (id: string): Scholarship | undefined => {
-    return scholarships.find(scholarship => scholarship.id === id);
-  };
-  
-  const handleStatusChange = (scholarshipId: string, newStatus: ScholarshipStatus) => {
-    // In a real app, this would be an API call
-    const updatedScholarships = userSavedScholarships.map(saved => {
-      if (saved.scholarshipId === scholarshipId) {
-        return { ...saved, status: newStatus };
+    const fetchSavedScholarships = async () => {
+      if (!currentUser) return;
+      
+      try {
+        setIsLoading(true);
+        
+        const { data, error } = await supabase
+          .from('saved_scholarships')
+          .select('*')
+          .eq('user_id', currentUser.id);
+        
+        if (error) {
+          console.error('Error fetching saved scholarships:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load saved scholarships",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        if (data) {
+          // Convert to SavedScholarship type
+          const savedScholarships: SavedScholarship[] = data.map(item => ({
+            scholarshipId: item.scholarship_id,
+            userId: item.user_id,
+            dateAdded: item.date_added,
+            status: item.status as ScholarshipStatus,
+            notes: item.notes
+          }));
+          
+          setUserSavedScholarships(savedScholarships);
+          
+          // Fetch details for all saved scholarships
+          if (savedScholarships.length > 0) {
+            const scholarshipIds = savedScholarships.map(s => s.scholarshipId);
+            await fetchScholarshipDetails(scholarshipIds);
+          }
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setIsLoading(false);
       }
-      return saved;
-    });
+    };
     
-    setUserSavedScholarships(updatedScholarships);
-    
-    toast({
-      title: "Status updated",
-      description: `Scholarship status changed to ${newStatus}`,
-    });
+    fetchSavedScholarships();
+  }, [currentUser, authLoading, navigate]);
+  
+  const fetchScholarshipDetails = async (ids: string[]) => {
+    try {
+      const { data, error } = await supabase
+        .from('scholarships')
+        .select('*')
+        .in('id', ids);
+      
+      if (error) {
+        console.error('Error fetching scholarship details:', error);
+        return;
+      }
+      
+      if (data) {
+        const detailsMap: Record<string, Scholarship> = {};
+        
+        data.forEach(item => {
+          detailsMap[item.id] = {
+            id: item.id,
+            name: item.name,
+            provider: item.provider,
+            description: item.description,
+            eligibility: item.eligibility,
+            amount: item.amount,
+            deadline: item.deadline,
+            applicationLink: item.application_link,
+            tags: item.tags,
+            featured: item.featured
+          };
+        });
+        
+        setScholarshipDetails(detailsMap);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
   
-  const handleRemove = (scholarshipId: string) => {
-    // In a real app, this would be an API call
-    const updatedScholarships = userSavedScholarships.filter(
-      saved => saved.scholarshipId !== scholarshipId
-    );
+  const handleStatusChange = async (scholarshipId: string, newStatus: ScholarshipStatus) => {
+    if (!currentUser) return;
     
-    setUserSavedScholarships(updatedScholarships);
+    try {
+      const { error } = await supabase
+        .from('saved_scholarships')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', currentUser.id)
+        .eq('scholarship_id', scholarshipId);
+      
+      if (error) {
+        console.error('Error updating status:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update status",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Update local state
+      const updatedScholarships = userSavedScholarships.map(saved => {
+        if (saved.scholarshipId === scholarshipId) {
+          return { ...saved, status: newStatus };
+        }
+        return saved;
+      });
+      
+      setUserSavedScholarships(updatedScholarships);
+      
+      toast({
+        title: "Status updated",
+        description: `Scholarship status changed to ${newStatus}`,
+      });
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+  
+  const handleRemove = async (scholarshipId: string) => {
+    if (!currentUser) return;
     
-    toast({
-      title: "Scholarship removed",
-      description: "The scholarship has been removed from your saved list",
-    });
+    try {
+      const { error } = await supabase
+        .from('saved_scholarships')
+        .delete()
+        .eq('user_id', currentUser.id)
+        .eq('scholarship_id', scholarshipId);
+      
+      if (error) {
+        console.error('Error removing scholarship:', error);
+        toast({
+          title: "Error",
+          description: "Failed to remove scholarship",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Update local state
+      const updatedScholarships = userSavedScholarships.filter(
+        saved => saved.scholarshipId !== scholarshipId
+      );
+      
+      setUserSavedScholarships(updatedScholarships);
+      
+      toast({
+        title: "Scholarship removed",
+        description: "The scholarship has been removed from your saved list",
+      });
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
   
   const filteredScholarships = currentTab === "all" 
     ? userSavedScholarships 
     : userSavedScholarships.filter(saved => saved.status === currentTab);
   
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar isLoggedIn={!!currentUser} userName={currentUser?.name} />
+        <div className="flex justify-center items-center h-[calc(100vh-64px)]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
   }
   
   return (
@@ -102,7 +230,7 @@ const SavedScholarshipsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredScholarships.length > 0 ? (
                 filteredScholarships.map((saved) => {
-                  const scholarship = getScholarshipById(saved.scholarshipId);
+                  const scholarship = scholarshipDetails[saved.scholarshipId];
                   if (!scholarship) return null;
                   
                   return (

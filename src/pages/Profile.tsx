@@ -20,7 +20,7 @@ import Navbar from '@/components/Navbar';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { currentUser, userProfile, updateUserProfile, isLoading } = useAuth();
+  const { currentUser, userProfile, updateUserProfile, isLoading: authLoading } = useAuth();
   
   const [formData, setFormData] = useState({
     academicInfo: {
@@ -37,10 +37,11 @@ const ProfilePage = () => {
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     // Redirect if not logged in
-    if (!isLoading && !currentUser) {
+    if (!authLoading && !currentUser) {
       toast({
         title: "Authentication required",
         description: "Please sign in to access your profile",
@@ -66,7 +67,9 @@ const ProfilePage = () => {
         }
       });
     }
-  }, [currentUser, userProfile, isLoading, navigate]);
+    
+    setIsLoading(false);
+  }, [currentUser, userProfile, authLoading, navigate]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -155,8 +158,15 @@ const ProfilePage = () => {
     }
   };
   
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar isLoggedIn={!!currentUser} userName={currentUser?.name} />
+        <div className="flex justify-center items-center h-[calc(100vh-64px)]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
   }
   
   return (

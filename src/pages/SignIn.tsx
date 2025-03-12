@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -22,6 +23,7 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,19 +40,15 @@ const SignIn = () => {
     
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      // For demo purposes, accept any credentials
-      console.log("User logged in:", { email });
+    try {
+      const success = await signIn(email, password);
       
-      toast({
-        title: "Success",
-        description: "You have successfully signed in",
-      });
-      
+      if (success) {
+        navigate("/scholarships");
+      }
+    } finally {
       setIsLoading(false);
-      navigate("/scholarships");
-    }, 1500);
+    }
   };
 
   return (

@@ -9,7 +9,202 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      academic_info: {
+        Row: {
+          created_at: string
+          gpa: number | null
+          id: string
+          institution: string | null
+          major: string
+          study_level: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          gpa?: number | null
+          id?: string
+          institution?: string | null
+          major: string
+          study_level: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          gpa?: number | null
+          id?: string
+          institution?: string | null
+          major?: string
+          study_level?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academic_info_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personal_info: {
+        Row: {
+          citizenship: string
+          created_at: string
+          extracurriculars: string[] | null
+          financial_background: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          citizenship: string
+          created_at?: string
+          extracurriculars?: string[] | null
+          financial_background?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          citizenship?: string
+          created_at?: string
+          extracurriculars?: string[] | null
+          financial_background?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_info_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          profile_completed: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          profile_completed?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          profile_completed?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      saved_scholarships: {
+        Row: {
+          date_added: string
+          id: string
+          notes: string | null
+          scholarship_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          date_added?: string
+          id?: string
+          notes?: string | null
+          scholarship_id: string
+          status: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          date_added?: string
+          id?: string
+          notes?: string | null
+          scholarship_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_scholarships_scholarship_id_fkey"
+            columns: ["scholarship_id"]
+            isOneToOne: false
+            referencedRelation: "scholarships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_scholarships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scholarships: {
+        Row: {
+          amount: Json
+          application_link: string
+          created_at: string
+          deadline: string
+          description: string
+          eligibility: Json
+          featured: boolean | null
+          id: string
+          name: string
+          provider: string
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          amount: Json
+          application_link: string
+          created_at?: string
+          deadline: string
+          description: string
+          eligibility: Json
+          featured?: boolean | null
+          id?: string
+          name: string
+          provider: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: Json
+          application_link?: string
+          created_at?: string
+          deadline?: string
+          description?: string
+          eligibility?: Json
+          featured?: boolean | null
+          id?: string
+          name?: string
+          provider?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

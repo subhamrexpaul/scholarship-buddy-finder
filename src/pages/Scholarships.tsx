@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { scholarships } from '@/data/scholarships';
 import ScholarshipCard from '@/components/ScholarshipCard';
 import SearchFilters from '@/components/SearchFilters';
 import { Scholarship, StudyLevel } from '@/types';
@@ -9,27 +8,92 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
 
 const ScholarshipsPage = () => {
   const { currentUser, userProfile } = useAuth();
-  const [filteredScholarships, setFilteredScholarships] = useState<Scholarship[]>(scholarships);
+  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [filteredScholarships, setFilteredScholarships] = useState<Scholarship[]>([]);
   const [recommendedScholarships, setRecommendedScholarships] = useState<{scholarship: Scholarship, score: number}[]>([]);
   const [savedScholarships, setSavedScholarships] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch scholarships from Supabase
+    const fetchScholarships = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase.from('scholarships').select('*');
+        
+        if (error) {
+          console.error('Error fetching scholarships:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load scholarships",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Transform data to match Scholarship type
+        const formattedScholarships: Scholarship[] = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          provider: item.provider,
+          description: item.description,
+          eligibility: item.eligibility,
+          amount: item.amount,
+          deadline: item.deadline,
+          applicationLink: item.application_link,
+          tags: item.tags,
+          featured: item.featured
+        }));
+        
+        setScholarships(formattedScholarships);
+        setFilteredScholarships(formattedScholarships);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchScholarships();
+  }, []);
 
   useEffect(() => {
     // If user is logged in and has a complete profile, generate recommendations
-    if (currentUser && userProfile) {
+    if (currentUser && userProfile && scholarships.length > 0) {
       const recommendations = getRecommendedScholarships(scholarships, userProfile);
       setRecommendedScholarships(recommendations);
     }
     
-    // In a real app, we would fetch the user's saved scholarships from the backend
-    if (currentUser) {
-      // Mock saved scholarships for demonstration
-      setSavedScholarships(['1', '4']); // Example IDs
-    }
-  }, [currentUser, userProfile]);
+    // Fetch user's saved scholarships if logged in
+    const fetchSavedScholarships = async () => {
+      if (!currentUser) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('saved_scholarships')
+          .select('scholarship_id')
+          .eq('user_id', currentUser.id);
+        
+        if (error) {
+          console.error('Error fetching saved scholarships:', error);
+          return;
+        }
+        
+        if (data) {
+          setSavedScholarships(data.map(item => item.scholarship_id));
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+    
+    fetchSavedScholarships();
+  }, [currentUser, userProfile, scholarships]);
 
   const handleSearch = (filters: {
     keyword: string;
@@ -70,7 +134,7 @@ const ScholarshipsPage = () => {
     setActiveTab("all");
   };
 
-  const handleSaveScholarship = (id: string) => {
+  const handleSaveScholarship = async (id: string) => {
     if (!currentUser) {
       toast({
         title: "Authentication required",
@@ -79,12 +143,60 @@ const ScholarshipsPage = () => {
       return;
     }
     
-    if (savedScholarships.includes(id)) {
-      // Remove from saved
-      setSavedScholarships(savedScholarships.filter(scholarshipId => scholarshipId !== id));
-    } else {
-      // Add to saved
-      setSavedScholarships([...savedScholarships, id]);
+    try {
+      if (savedScholarships.includes(id)) {
+        // Remove from saved
+        const { error } = await supabase
+          .from('saved_scholarships')
+          .delete()
+          .eq('user_id', currentUser.id)
+          .eq('scholarship_id', id);
+          
+        if (error) {
+          console.error('Error removing scholarship:', error);
+          toast({
+            title: "Error",
+            description: "Failed to remove scholarship",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        setSavedScholarships(savedScholarships.filter(scholarshipId => scholarshipId !== id));
+        
+        toast({
+          title: "Scholarship removed",
+          description: "Scholarship has been removed from your saved list",
+        });
+      } else {
+        // Add to saved
+        const { error } = await supabase
+          .from('saved_scholarships')
+          .insert({
+            user_id: currentUser.id,
+            scholarship_id: id,
+            status: 'Planning to Apply'
+          });
+          
+        if (error) {
+          console.error('Error saving scholarship:', error);
+          toast({
+            title: "Error",
+            description: "Failed to save scholarship",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        setSavedScholarships([...savedScholarships, id]);
+        
+        toast({
+          title: "Scholarship saved",
+          description: "Scholarship has been added to your saved list",
+        });
+      }
+    } catch (error) {
+      console.error('Error handling save:', error);
     }
   };
 
@@ -119,31 +231,37 @@ const ScholarshipsPage = () => {
           </Tabs>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayedScholarships.length > 0 ? (
-            displayedScholarships.map((scholarship) => {
-              const isRecommended = activeTab === "recommended";
-              const matchScore = isRecommended 
-                ? recommendedScholarships.find(rec => rec.scholarship.id === scholarship.id)?.score
-                : undefined;
-              
-              return (
-                <ScholarshipCard 
-                  key={scholarship.id}
-                  scholarship={scholarship}
-                  isSaved={savedScholarships.includes(scholarship.id)}
-                  onSave={handleSaveScholarship}
-                  matchScore={matchScore}
-                />
-              );
-            })
-          ) : (
-            <div className="col-span-3 text-center py-8">
-              <p className="text-xl text-muted-foreground">No scholarships match your search criteria.</p>
-              <p className="text-muted-foreground mt-2">Try adjusting your filters or search terms.</p>
-            </div>
-          )}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayedScholarships.length > 0 ? (
+              displayedScholarships.map((scholarship) => {
+                const isRecommended = activeTab === "recommended";
+                const matchScore = isRecommended 
+                  ? recommendedScholarships.find(rec => rec.scholarship.id === scholarship.id)?.score
+                  : undefined;
+                
+                return (
+                  <ScholarshipCard 
+                    key={scholarship.id}
+                    scholarship={scholarship}
+                    isSaved={savedScholarships.includes(scholarship.id)}
+                    onSave={handleSaveScholarship}
+                    matchScore={matchScore}
+                  />
+                );
+              })
+            ) : (
+              <div className="col-span-3 text-center py-8">
+                <p className="text-xl text-muted-foreground">No scholarships match your search criteria.</p>
+                <p className="text-muted-foreground mt-2">Try adjusting your filters or search terms.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
