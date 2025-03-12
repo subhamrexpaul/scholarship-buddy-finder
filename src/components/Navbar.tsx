@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,6 @@ const Navbar = ({ isLoggedIn = false, userName = "" }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Handle scroll effect for navbar
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
@@ -47,6 +45,14 @@ const Navbar = ({ isLoggedIn = false, userName = "" }: NavbarProps) => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <header 
       className={`fixed top-0 left-0 right-0 z-50 py-4 transition-all duration-300 ${
@@ -55,7 +61,6 @@ const Navbar = ({ isLoggedIn = false, userName = "" }: NavbarProps) => {
     >
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <img 
               src="/lovable-uploads/ec629fd5-ba51-4d2d-a871-4231af6e9393.png" 
@@ -64,7 +69,6 @@ const Navbar = ({ isLoggedIn = false, userName = "" }: NavbarProps) => {
             />
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
               to="/scholarships" 
@@ -72,21 +76,20 @@ const Navbar = ({ isLoggedIn = false, userName = "" }: NavbarProps) => {
             >
               Scholarships
             </Link>
-            <Link 
-              to="/" 
+            <button 
+              onClick={() => scrollToSection('how-it-works')}
               className="text-foreground/80 hover:text-blue-500 transition-colors"
             >
               How It Works
-            </Link>
-            <Link 
-              to="/" 
+            </button>
+            <button 
+              onClick={() => scrollToSection('about')}
               className="text-foreground/80 hover:text-blue-500 transition-colors"
             >
               About
-            </Link>
+            </button>
           </nav>
 
-          {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             {isLoggedIn ? (
               <>
@@ -154,7 +157,6 @@ const Navbar = ({ isLoggedIn = false, userName = "" }: NavbarProps) => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
           <Button
             variant="ghost"
             size="icon"
@@ -165,7 +167,6 @@ const Navbar = ({ isLoggedIn = false, userName = "" }: NavbarProps) => {
           </Button>
         </div>
 
-        {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden pt-4 pb-2 animate-fade-in">
             <nav className="flex flex-col space-y-4">
@@ -176,20 +177,18 @@ const Navbar = ({ isLoggedIn = false, userName = "" }: NavbarProps) => {
               >
                 Scholarships
               </Link>
-              <Link 
-                to="/" 
-                className="py-2 text-foreground/80 hover:text-blue-500 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button 
+                onClick={() => scrollToSection('how-it-works')}
+                className="py-2 text-left text-foreground/80 hover:text-blue-500 transition-colors"
               >
                 How It Works
-              </Link>
-              <Link 
-                to="/" 
-                className="py-2 text-foreground/80 hover:text-blue-500 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+              </button>
+              <button 
+                onClick={() => scrollToSection('about')}
+                className="py-2 text-left text-foreground/80 hover:text-blue-500 transition-colors"
               >
                 About
-              </Link>
+              </button>
               
               {isLoggedIn ? (
                 <>

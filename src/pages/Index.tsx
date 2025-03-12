@@ -1,21 +1,14 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
+import HowItWorks from '@/components/HowItWorks';
+import About from '@/components/About';
 import FeatureCard from '@/components/FeatureCard';
 import ScholarshipCard from '@/components/ScholarshipCard';
 import { Button } from '@/components/ui/button';
 import { scholarships } from '@/data/scholarships';
-import { 
-  Brain, 
-  Search, 
-  Filter, 
-  BookmarkCheck, 
-  Award, 
-  ChevronRight,
-  ArrowRight
-} from 'lucide-react';
+import { Brain, Search, Filter, BookmarkCheck } from 'lucide-react';
 
 const featuresData = [
   {
@@ -50,10 +43,8 @@ const Index = () => {
   });
 
   useEffect(() => {
-    // Get featured scholarships
     setFeaturedScholarships(scholarships.filter(s => s.featured).slice(0, 3));
     
-    // Set up scroll animations
     const observerOptions = {
       threshold: 0.1,
       rootMargin: '0px 0px -100px 0px'
@@ -98,6 +89,8 @@ const Index = () => {
       
       <main>
         <HeroSection />
+        <HowItWorks />
+        <About />
         
         {/* Features Section */}
         <section 
