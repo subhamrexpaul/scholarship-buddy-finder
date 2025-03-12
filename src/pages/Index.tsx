@@ -8,7 +8,7 @@ import FeatureCard from '@/components/FeatureCard';
 import ScholarshipCard from '@/components/ScholarshipCard';
 import { Button } from '@/components/ui/button';
 import { scholarships } from '@/data/scholarships';
-import { Brain, Search, Filter, BookmarkCheck } from 'lucide-react';
+import { Brain, Search, Filter, BookmarkCheck, ChevronRight, Award, ArrowRight } from 'lucide-react';
 
 const featuresData = [
   {
