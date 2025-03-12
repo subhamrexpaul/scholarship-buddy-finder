@@ -1,69 +1,146 @@
-# Welcome to your Lovable project
+# AI-Powered Scholarship Finder
 
-## Project info
+## Project Overview
+The AI-Powered Scholarship Finder is a full-stack web application designed to assist students in discovering, filtering, and tracking scholarships tailored to their personal, academic, and financial profiles. By leveraging an AI-based recommendation engine, the platform provides personalized scholarship suggestions, enhancing students' chances of securing financial aid for their educational pursuits.
 
-**URL**: https://lovable.dev/projects/83cca3fa-65d1-451c-b9a5-449f2553057d
+## Table of Contents
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Running the Application](#running-the-application)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
+- [Deployed Application](#deployed-application)
 
-## How can I edit this code?
+## Features
+- **User Authentication:** Secure user registration and login system.
+- **Profile Management:** Users can input and update their academic and personal information.
+- **Scholarship Database:** Comprehensive collection of scholarships with detailed information.
+- **AI-Based Recommendations:** Personalized scholarship suggestions based on user profiles.
+- **Search & Filter:** Advanced search and filtering options to find relevant scholarships.
+- **Favorites & Tracking:** Save scholarships and monitor application statuses.
+- **Responsive Design:** Optimized for both desktop and mobile devices.
 
-There are several ways of editing your application.
+## Tech Stack
+- **Frontend:**
+  - [React.js](https://reactjs.org/)
+  - [Tailwind CSS](https://tailwindcss.com/)
+  - [Vite](https://vitejs.dev/)
+- **Backend:**
+  - [Node.js](https://nodejs.org/)
+  - [Express.js](https://expressjs.com/)
+  - [Supabase](https://supabase.io/) (as the database and authentication provider)
+- **AI Recommendation Engine:**
+  - Custom-built algorithm or integration with external AI services.
 
-**Use Lovable**
+## Getting Started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/83cca3fa-65d1-451c-b9a5-449f2553057d) and start prompting.
+### Prerequisites
+Ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (version 14 or above)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/your-username/ai-scholarship-finder.git
+   cd ai-scholarship-finder
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. **Install Dependencies:**
+   Using npm:
+   ```bash
+   npm install
+   ```
+   Or using yarn:
+   ```bash
+   yarn install
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+3. **Set Up Environment Variables:**
+   Create a `.env` file in the root directory and add the following variables:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
-Follow these steps:
+   Replace `your_supabase_url` and `your_supabase_anon_key` with your Supabase project's credentials.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Running the Application
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. **Start the Development Server:**
+   Using npm:
+   ```bash
+   npm run dev
+   ```
+   Or using yarn:
+   ```bash
+   yarn dev
+   ```
+   The application will be accessible at `http://localhost:5173`.
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. **Build for Production:**
+   Using npm:
+   ```bash
+   npm run build
+   ```
+   Or using yarn:
+   ```bash
+   yarn build
+   ```
+   The production-ready files will be in the `dist` directory.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+## Project Structure
+```plaintext
+public
+  placeholder.svg
+src
+  components
+  context
+  data
+  hooks
+  lib
+  pages
+  types
+  utils
+  App.css
+  App.tsx
+  index.css
+  main.tsx
+.gitignore
+components.json
+eslint.config.js
+index.html
+package.json
+postcss.config.js
+README.md
+tailwind.config.ts
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
 ```
 
-**Edit a file directly in GitHub**
+## Contributing
+Contributions are welcome! Please follow these steps:
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature-name`.
+3. Commit your changes: `git commit -m 'Add new feature'`.
+4. Push to the branch: `git push origin feature-name`.
+5. Open a pull request.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-**Use GitHub Codespaces**
+## Acknowledgements
+- [Supabase](https://supabase.io/) for backend services.
+- [Tailwind CSS](https://tailwindcss.com/) for styling.
+- [Vite](https://vitejs.dev/) for the build tool.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/83cca3fa-65d1-451c-b9a5-449f2553057d) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## Deployed Application
+- **Live URL:** [Scholarship Buddy Finder](https://scholarship-buddy-finder.lovable.app)
