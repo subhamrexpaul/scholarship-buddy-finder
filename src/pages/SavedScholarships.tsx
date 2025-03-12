@@ -35,7 +35,7 @@ const SavedScholarshipsPage = () => {
       const userSaved = savedScholarships.filter(
         saved => saved.userId === currentUser.id
       );
-      setUserSavedScholarships(userSaved);
+      setUserSavedScholarships(userSaved as SavedScholarship[]);
     }
   }, [currentUser, isLoading, navigate]);
   
@@ -92,10 +92,10 @@ const SavedScholarshipsPage = () => {
         <Tabs defaultValue="all" value={currentTab} onValueChange={setCurrentTab}>
           <TabsList className="mb-8">
             <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="Planning to Apply">Planning to Apply</TabsTrigger>
-            <TabsTrigger value="Applied">Applied</TabsTrigger>
-            <TabsTrigger value="Accepted">Accepted</TabsTrigger>
-            <TabsTrigger value="Rejected">Rejected</TabsTrigger>
+            <TabsTrigger value={ScholarshipStatus.Planning}>Planning to Apply</TabsTrigger>
+            <TabsTrigger value={ScholarshipStatus.Applied}>Applied</TabsTrigger>
+            <TabsTrigger value={ScholarshipStatus.Accepted}>Accepted</TabsTrigger>
+            <TabsTrigger value={ScholarshipStatus.Rejected}>Rejected</TabsTrigger>
           </TabsList>
           
           <TabsContent value={currentTab} className="pt-2">
@@ -119,10 +119,10 @@ const SavedScholarshipsPage = () => {
                           onChange={(e) => handleStatusChange(saved.scholarshipId, e.target.value as ScholarshipStatus)}
                           className="block w-full rounded-md border border-gray-300 p-2 bg-white text-sm"
                         >
-                          <option value="Planning to Apply">Planning to Apply</option>
-                          <option value="Applied">Applied</option>
-                          <option value="Accepted">Accepted</option>
-                          <option value="Rejected">Rejected</option>
+                          <option value={ScholarshipStatus.Planning}>Planning to Apply</option>
+                          <option value={ScholarshipStatus.Applied}>Applied</option>
+                          <option value={ScholarshipStatus.Accepted}>Accepted</option>
+                          <option value={ScholarshipStatus.Rejected}>Rejected</option>
                         </select>
                         
                         <Button 

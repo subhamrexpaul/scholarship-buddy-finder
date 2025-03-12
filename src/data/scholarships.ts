@@ -1,5 +1,5 @@
 
-import { Scholarship, StudyLevel } from "../types";
+import { Scholarship, StudyLevel, ScholarshipStatus } from "../types";
 
 export const scholarships: Scholarship[] = [
   {
@@ -172,14 +172,14 @@ export const savedScholarships = [
     scholarshipId: "1",
     userId: "user-123",
     dateAdded: "2023-10-01T10:30:00Z",
-    status: "Planning to Apply" as const,
+    status: ScholarshipStatus.Planning,
     notes: "Need to prepare essay and get recommendation letters"
   },
   {
     scholarshipId: "4",
     userId: "user-123",
     dateAdded: "2023-10-05T14:45:00Z",
-    status: "Applied" as const,
+    status: ScholarshipStatus.Applied,
     notes: "Submitted application, waiting for response"
   }
 ];

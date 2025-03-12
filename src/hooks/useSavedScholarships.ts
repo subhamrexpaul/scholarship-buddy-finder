@@ -24,7 +24,7 @@ export const useSavedScholarships = () => {
         const userSaved = initialSavedScholarships.filter(
           saved => saved.userId === currentUser.id
         );
-        setSavedScholarships(userSaved);
+        setSavedScholarships(userSaved as SavedScholarship[]);
       } catch (error) {
         console.error('Error loading saved scholarships:', error);
         toast({

@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { User, UserProfile } from '@/types';
+import { User, UserProfile, StudyLevel, FinancialBackground } from '@/types';
 import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
@@ -31,12 +31,12 @@ let mockProfiles: UserProfile[] = [
     academicInfo: {
       gpa: 3.8,
       major: 'Computer Science',
-      studyLevel: 'Undergraduate',
+      studyLevel: StudyLevel.Undergraduate,
       institution: 'Example University'
     },
     personalInfo: {
       citizenship: 'United States',
-      financialBackground: 'Medium',
+      financialBackground: FinancialBackground.Medium,
       extracurriculars: ['Coding Club', 'Volunteer Work']
     }
   }
@@ -199,7 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           academicInfo: {
             gpa: profile.academicInfo?.gpa || 0,
             major: profile.academicInfo?.major || '',
-            studyLevel: profile.academicInfo?.studyLevel || 'Undergraduate',
+            studyLevel: profile.academicInfo?.studyLevel || StudyLevel.Undergraduate,
             institution: profile.academicInfo?.institution
           },
           personalInfo: {
